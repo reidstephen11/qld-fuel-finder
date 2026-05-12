@@ -1,4 +1,5 @@
-export const CKAN_BASE_URL = '/api/qld/datastore_search'
+export const CKAN_BASE_URL = 'https://www.data.qld.gov.au/api/action/datastore_search'
+export const FPQ_BASE_URL = 'https://fppdirectapi-prod.fuelpricesqld.com.au'
 
 export const NOMINATIM_URL = 'https://nominatim.openstreetmap.org/search'
 

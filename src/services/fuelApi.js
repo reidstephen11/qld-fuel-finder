@@ -1,4 +1,4 @@
-import { CKAN_BASE_URL, getCurrentResourceId, FUEL_TYPE_IDS } from '../config/constants.js'
+import { CKAN_BASE_URL, FPQ_BASE_URL, getCurrentResourceId, FUEL_TYPE_IDS } from '../config/constants.js'
 
 let cache = { data: null, timestamp: 0, fuelType: null, source: null }
 const CACHE_DURATION_LIVE = 5 * 60 * 1000   // 5 minutes for live API
@@ -32,9 +32,14 @@ export async function fetchFuelPrices(fuelType) {
 // Cache brand names separately (they rarely change)
 let brandCache = null
 
+function fpqHeaders() {
+  const token = import.meta.env.VITE_FPQ_TOKEN
+  return token ? { Authorization: `FPDAPI SubscriberToken=${token}` } : {}
+}
+
 async function fetchBrands() {
   if (brandCache) return brandCache
-  const res = await fetch('/api/live/Subscriber/GetCountryBrands?countryId=21')
+  const res = await fetch(`${FPQ_BASE_URL}/Subscriber/GetCountryBrands?countryId=21`, { headers: fpqHeaders() })
   if (!res.ok) return new Map()
   const data = await res.json()
   const map = new Map()
@@ -47,9 +52,10 @@ async function fetchBrands() {
 }
 
 async function fetchFromLiveApi(fuelType) {
+  const headers = fpqHeaders()
   const [sitesRes, pricesRes, brandMap] = await Promise.all([
-    fetch('/api/live/Subscriber/GetFullSiteDetails?countryId=21&geoRegionLevel=3&geoRegionId=1'),
-    fetch('/api/live/Price/GetSitesPrices?countryId=21&geoRegionLevel=3&geoRegionId=1'),
+    fetch(`${FPQ_BASE_URL}/Subscriber/GetFullSiteDetails?countryId=21&geoRegionLevel=3&geoRegionId=1`, { headers }),
+    fetch(`${FPQ_BASE_URL}/Price/GetSitesPrices?countryId=21&geoRegionLevel=3&geoRegionId=1`, { headers }),
     fetchBrands(),
   ])
 

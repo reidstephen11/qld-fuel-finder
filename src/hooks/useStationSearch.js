@@ -24,7 +24,7 @@ export function useStationSearch() {
       userLocation.lon,
       settings,
       settings.searchRadius
-    )
+    ).slice(0, 5)
   }, [stations, userLocation, settings, drivingDistances])
 
   return { rankedStations }

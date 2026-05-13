@@ -42,7 +42,16 @@ const initialState = {
 function reducer(state, action) {
   switch (action.type) {
     case 'SET_LOCATION':
-      return { ...state, userLocation: action.payload, locationLoading: false, locationError: null }
+      // Clear cached driving distances — they were computed against the
+      // previous origin, so reusing them would let stale stations slip
+      // past the radius filter at the new location.
+      return {
+        ...state,
+        userLocation: action.payload,
+        locationLoading: false,
+        locationError: null,
+        drivingDistances: new Map(),
+      }
     case 'SET_LOCATION_LOADING':
       return { ...state, locationLoading: true, locationError: null }
     case 'SET_LOCATION_ERROR':

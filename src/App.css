@@ -37,15 +37,8 @@
 }
 .leaflet-control-attribution a { color: var(--accent) !important; }
 
-/* Tile recolouring — soft cool gray, accents preserved */
-:root.theme-dark .leaflet-tile-pane {
-  filter: invert(1) hue-rotate(180deg) saturate(0.6) brightness(0.9);
-}
-@media (prefers-color-scheme: dark) {
-  :root:not(.theme-light) .leaflet-tile-pane {
-    filter: invert(1) hue-rotate(180deg) saturate(0.6) brightness(0.9);
-  }
-}
+/* Dark-mode tiles are handled by FuelMap.jsx swapping to Carto Dark Matter —
+   no CSS filter needed (and would double-invert the dark tiles). */
 
 /* ─── Top bar (search + brand + settings) ───────────────────────── */
 .topbar {

@@ -11,8 +11,17 @@ function loadSettings() {
   return DEFAULT_SETTINGS
 }
 
+function loadHomeLocation() {
+  try {
+    const saved = localStorage.getItem('fuelFinderHomeLocation')
+    if (saved) return JSON.parse(saved)
+  } catch { /* ignore */ }
+  return null
+}
+
 const initialState = {
   userLocation: null,
+  homeLocation: loadHomeLocation(),
   locationLoading: false,
   locationError: null,
 
@@ -49,9 +58,16 @@ function reducer(state, action) {
     case 'UPDATE_SETTINGS':
       return { ...state, settings: { ...state.settings, ...action.payload } }
     case 'SELECT_STATION':
-      return { ...state, selectedStation: { ...action.payload, _selectedAt: Date.now() } }
+      return {
+        ...state,
+        selectedStation: action.payload
+          ? { ...action.payload, _selectedAt: Date.now() }
+          : null,
+      }
     case 'TOGGLE_SETTINGS':
       return { ...state, showSettings: !state.showSettings }
+    case 'SET_HOME_LOCATION':
+      return { ...state, homeLocation: action.payload }
     case 'SET_DRIVING_DISTANCES':
       return { ...state, drivingDistances: action.payload }
     default:
@@ -70,6 +86,14 @@ export function AppProvider({ children }) {
   useEffect(() => {
     localStorage.setItem('fuelFinderFuelType', state.selectedFuelType)
   }, [state.selectedFuelType])
+
+  useEffect(() => {
+    if (state.homeLocation) {
+      localStorage.setItem('fuelFinderHomeLocation', JSON.stringify(state.homeLocation))
+    } else {
+      localStorage.removeItem('fuelFinderHomeLocation')
+    }
+  }, [state.homeLocation])
 
   return (
     <AppContext.Provider value={{ state, dispatch }}>

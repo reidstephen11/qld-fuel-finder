@@ -6,9 +6,23 @@ export default function BottomSheet({ state, onChange, children }) {
   const sheetRef = useRef(null)
   const startY = useRef(null)
   const startHeight = useRef(null)
+  const dragged = useRef(false)
   const [dragH, setDragH] = useState(null)
+  const [, bumpRender] = useState(0)
 
   const isDesktop = useIsDesktop()
+
+  // Re-render on viewport changes so heightFor() picks up the new innerHeight
+  // (orientation flip, Android URL-bar show/hide, etc.).
+  useEffect(() => {
+    const handler = () => bumpRender((n) => n + 1)
+    window.addEventListener('resize', handler)
+    window.addEventListener('orientationchange', handler)
+    return () => {
+      window.removeEventListener('resize', handler)
+      window.removeEventListener('orientationchange', handler)
+    }
+  }, [])
 
   const snap = {
     peek: 168,
@@ -27,18 +41,20 @@ export default function BottomSheet({ state, onChange, children }) {
     e.currentTarget.setPointerCapture(e.pointerId)
     startY.current = e.clientY
     startHeight.current = sheetRef.current.getBoundingClientRect().height
+    dragged.current = false
   }
 
   function onPointerMove(e) {
     if (startY.current == null) return
     const dy = startY.current - e.clientY
+    if (Math.abs(dy) > 4) dragged.current = true
     const next = Math.max(120, Math.min(window.innerHeight - 40, startHeight.current + dy))
     setDragH(next)
   }
 
   function onPointerUp(e) {
     if (startY.current == null) return
-    e.currentTarget.releasePointerCapture(e.pointerId)
+    try { e.currentTarget.releasePointerCapture(e.pointerId) } catch { /* already released */ }
     const final = dragH ?? sheetRef.current.getBoundingClientRect().height
     const heights = ['peek', 'half', 'full'].map((s) => [s, heightFor(s)])
     let nearest = heights[0]
@@ -52,6 +68,12 @@ export default function BottomSheet({ state, onChange, children }) {
 
   function handleClick() {
     if (isDesktop) return
+    // A drag just finished — suppress the synthesized click that would
+    // otherwise advance the snap state a second time.
+    if (dragged.current) {
+      dragged.current = false
+      return
+    }
     const next = state === 'peek' ? 'half' : state === 'half' ? 'full' : 'peek'
     onChange(next)
   }

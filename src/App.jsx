@@ -31,10 +31,10 @@ export default function App() {
     }
   }, [rankedStations.length])
 
-  // GPS FAB sits above the current sheet height (mobile only)
-  const fabBottom = sheetState === 'peek' ? 184
-                  : sheetState === 'half' ? 'calc(46vh + 16px)'
-                  : 'calc(92vh + 16px)'
+  // GPS FAB sits above the current sheet height (mobile only).
+  // Hidden at 'full' since the sheet then covers the map anyway.
+  const fabBottom = sheetState === 'peek' ? 184 : 'calc(46vh + 16px)'
+  const showFab = sheetState !== 'full'
 
   return (
     <div className="app">
@@ -45,16 +45,18 @@ export default function App() {
       <Header />
       <FuelTypeChips />
 
-      <button
-        type="button"
-        className={`gps-fab ${gpsLoading ? 'loading' : ''}`}
-        style={{ bottom: fabBottom }}
-        onClick={requestLocation}
-        aria-label="Recenter on my location"
-        title="My location"
-      >
-        <IconCrosshair size={18} sw={2} />
-      </button>
+      {showFab && (
+        <button
+          type="button"
+          className={`gps-fab ${gpsLoading ? 'loading' : ''}`}
+          style={{ bottom: fabBottom }}
+          onClick={requestLocation}
+          aria-label="Recenter on my location"
+          title="My location"
+        >
+          <IconCrosshair size={18} sw={2} />
+        </button>
+      )}
 
       <BottomSheet state={sheetState} onChange={setSheetState}>
         <StationList rankedStations={rankedStations} />
